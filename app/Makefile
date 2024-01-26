@@ -9,7 +9,7 @@ INC_DIR							= inc
 SHARED_SRC_DIR			= ../shared/src
 SHARED_INC_DIR			= ../shared/inc
 OPENCM3_DIR					= ../libopencm3
-FREERTOS_DIR				= ../FreeRTOS
+FREERTOS_DIR				= ../FreeRTOS-Kernel
 FREERTOS_CONFIG_DIR = ../config
 
 BINARY = main
@@ -124,11 +124,11 @@ GENERATED_BINARIES=$(BINARY).elf $(BINARY).bin $(BINARY).hex $(BINARY).srec $(BI
 images: $(BINARY).images
 flash: $(BINARY).flash
 
-$(OPENCM3_DIR)/lib/lib$(LIBNAME).a:
-ifeq (,$(wildcard $@))
-	$(warning $(LIBNAME).a not found, attempting to rebuild in $(OPENCM3_DIR))
-	$(MAKE) -C $(OPENCM3_DIR)
-endif
+# $(OPENCM3_DIR)/lib/lib$(LIBNAME).a:
+# ifeq (,$(wildcard $@))
+# 	$(warning $(LIBNAME).a not found, attempting to rebuild in $(OPENCM3_DIR))
+# 	$(MAKE) -C $(OPENCM3_DIR)
+# endif
 
 # Define a helper macro for debugging make errors online
 # you can type "make print-OPENCM3_DIR" and it will show you
