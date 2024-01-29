@@ -61,6 +61,8 @@ CSTD		?= -std=c99
 # Source files
 
 OBJS		+= $(SRC_DIR)/$(BINARY).o
+OBJS		+= $(SRC_DIR)/i2c_controller.o
+OBJS		+= $(SRC_DIR)/usart_controller.o
 OBJS		+= $(FREERTOS_DIR)/timers.o
 
 ###############################################################################

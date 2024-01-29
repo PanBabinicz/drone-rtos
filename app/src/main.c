@@ -1,3 +1,6 @@
+#include "common-defines.h"
+#include "i2c_controller.h"
+#include "usart_controller.h"
 #include <FreeRTOS.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/i2c.h>
@@ -12,9 +15,15 @@ static void rcc_setup(void) {
 
   /* Enable GPIOB */
   rcc_periph_clock_enable(RCC_GPIOB);
+  
+  /* Enable GPIOA */
+  rcc_periph_clock_enable(RCC_GPIOA);
 
   /* Enable I2C1 */
   rcc_periph_clock_enable(RCC_I2C1);
+
+  /* Enable USART1_TX */
+  rcc_periph_clock_enable(RCC_USART1);
 }
 
 static void gpio_setup(void) {
@@ -24,14 +33,24 @@ static void gpio_setup(void) {
   /* Configure GPIO port and pins for I2C1 */
   gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO6 | GPIO7);
 
+  /* Configure GPIO port and pin for USART1_TX */
+  gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO9);
+
   /* Set alternative function for I2C1 */
   gpio_set_af(GPIOB, GPIO_AF4, GPIO6 | GPIO7);
+
+  /* Set alternative function for USART1_TX */
+  gpio_set_af(GPIOA, GPIO_AF7, GPIO9);
 }
 
 static void i2c_setup(void) {
   i2c_peripheral_disable(I2C1);
   i2c_set_standard_mode(I2C1);
   i2c_peripheral_enable(I2C1);
+}
+
+static void usart_setup(void) {
+  usart_controller_init(&usart_default_config);
 }
 
 static void delay(uint32_t cycles) {
@@ -54,11 +73,16 @@ int main(void) {
   rcc_setup();
   gpio_setup();
   i2c_setup();
+  usart_setup();
 
-  led2_on();
+  led2_off();
+
+  uint16_t data = 0x41;
 
   while (1) {
-
+    delay(96000000 / 4);
+    i2c_controller_send(I2C1, &(uint8_t){0b00110101});
+    usart_controller_send(USART1, data);
   }
 
   return 0;
