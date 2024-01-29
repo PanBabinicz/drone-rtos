@@ -19,8 +19,14 @@ usart_controller_status_t usart_controller_init(const usart_controller_config_t 
   return USART_CONTROLLER_SUCCESS;
 }
 
-usart_controller_status_t usart_controller_send(uint32_t usart, uint16_t data) {
-  usart_send(usart, data);
+usart_controller_status_t usart_controller_send(uint32_t usart, uint16_t *data_buffer) {
+  if (!data_buffer) {
+    return USART_CONTROLLER_NULL_POINTER;
+  }
+
+  for (uint16_t i = 0; i < message_length(data_buffer); i++) {
+    usart_send_blocking(usart, data_buffer[i]);
+  }
 
   return USART_CONTROLLER_SUCCESS;
 }

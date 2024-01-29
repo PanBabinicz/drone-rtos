@@ -63,6 +63,7 @@ CSTD		?= -std=c99
 OBJS		+= $(SRC_DIR)/$(BINARY).o
 OBJS		+= $(SRC_DIR)/i2c_controller.o
 OBJS		+= $(SRC_DIR)/usart_controller.o
+OBJS		+= $(SRC_DIR)/message.o
 OBJS		+= $(FREERTOS_DIR)/timers.o
 
 ###############################################################################

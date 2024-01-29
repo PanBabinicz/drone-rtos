@@ -2,11 +2,13 @@
 #define INC_USART_CONTROLLER_H
 
 #include <common-defines.h>
+#include <message.h>
 
 #include <libopencm3/stm32/usart.h>
 
 typedef enum {
   USART_CONTROLLER_SUCCESS = 0,
+  USART_CONTROLLER_NULL_POINTER,
   USART_CONTROLLER_ERROR,
 } usart_controller_status_t;
 
@@ -33,6 +35,6 @@ typedef struct {
 extern usart_controller_config_t usart_default_config;
 
 usart_controller_status_t usart_controller_init(const usart_controller_config_t *config);
-usart_controller_status_t usart_controller_send(uint32_t usart, uint16_t data);
+usart_controller_status_t usart_controller_send(uint32_t usart, uint16_t *data_buffer);
 
 #endif // !INC_USART_CONTROLLER_H

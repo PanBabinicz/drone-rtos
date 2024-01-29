@@ -1,6 +1,7 @@
 #include "common-defines.h"
 #include "i2c_controller.h"
 #include "usart_controller.h"
+#include <message.h>
 #include <FreeRTOS.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/i2c.h>
@@ -77,12 +78,13 @@ int main(void) {
 
   led2_off();
 
-  uint16_t data = 0x41;
+  uint16_t data_buffer[128];
+  message_write(data_buffer, "Hello from this side!\n\r");
 
   while (1) {
     delay(96000000 / 4);
     i2c_controller_send(I2C1, &(uint8_t){0b00110101});
-    usart_controller_send(USART1, data);
+    usart_controller_send(USART1, data_buffer);
   }
 
   return 0;
