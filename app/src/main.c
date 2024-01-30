@@ -45,9 +45,7 @@ static void gpio_setup(void) {
 }
 
 static void i2c_setup(void) {
-  i2c_peripheral_disable(I2C1);
-  i2c_set_standard_mode(I2C1);
-  i2c_peripheral_enable(I2C1);
+  i2c_controller_init(&i2c_default_sm_config);
 }
 
 static void usart_setup(void) {
@@ -83,8 +81,8 @@ int main(void) {
 
   while (1) {
     delay(96000000 / 4);
-    i2c_controller_send(I2C1, &(uint8_t){0b00110101});
-    usart_controller_send(USART1, data_buffer);
+    i2c_controller_scan(I2C1);
+    // i2c_controller_send_byte(I2C1, 0x55, &(const uint8_t){0b01010101});
   }
 
   return 0;
