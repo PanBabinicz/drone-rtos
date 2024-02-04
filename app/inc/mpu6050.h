@@ -2,6 +2,10 @@
 #define INC_MPU6050_H
 
 #include <common-defines.h>
+#include <i2c_controller.h>
+
+/* MPU6050 Address: AD0 pin is conntected to Vcc */
+#define MPU6050_ADDRESS (0x69)
 
 /* MPU6050 Registers. */
 #define MPU6050_SELF_TEST_X         (0x0D)
@@ -87,11 +91,81 @@
 #define MPU6050_FIFO_R_W            (0x74)
 #define MPU6050_WHO_AM_I            (0x75)
 
+/* Signal path register bits. */
+#define MPU6050_TEMP_RESET  (1 << 0)
+#define MPU6050_ACCEL_RESET (1 << 1)
+#define MPU6050_GYRO_RESET  (1 << 2)
+
+/* GYRO Config definitions. */
+#define MPU6050_XG_ST (1 << 7)
+#define MPU6050_YG_ST (1 << 5)
+#define MPU6050_ZG_ST (1 << 4)
+
+#define MPU6050_FS_SEL_250  (~(3 << 3))
+#define MPU6050_FS_SEL_500  (1 << 3)
+#define MPU6050_FS_SEL_1000 (2 << 3)
+#define MPU6050_FS_SEL_2000 (3 << 3)
+
+/* ACCEL Config definitions. */
+#define MPU6050_XA_ST (1 << 7)
+#define MPU6050_YA_ST (1 << 5)
+#define MPU6050_ZA_ST (1 << 4)
+
+#define MPU6050_AFS_SEL_2   (~(3 << 3))
+#define MPU6050_AFS_SEL_4   (1 << 3)
+#define MPU6050_AFS_SEL_8   (2 << 3)
+#define MPU6050_AFS_SEL_16  (3 << 3)
+
+/* Power Management 1 register bits. */
+#define MPU6050_DEVICE_RESET_BIT  (1 << 7)
+
+#define MPU6050_CLKSEL_INTERNAL   (0 << 0)
+#define MPU6050_CLKSEL_PLL_XGYRO  (1 << 0)
+#define MPU6050_CLKSEL_PLL_YGYRO  (2 << 0)
+#define MPU6050_CLKSEL_PLL_ZGYRO  (3 << 0)
+#define MPU6050_CLKSEL_PLL_EXT32  (4 << 0)
+#define MPU6050_CLKSEL_PLL_EXT19  (5 << 0)
+#define MPU6050_CLKSEL_STOP       (7 << 0)
+
+
+/* MPU6050 instructions. */
+#define MPU6050_CLKSEL_INSTR            ((uint8_t[]){ (uint8_t)MPU6050_PWR_MGMT_1, (uint8_t)(MPU6050_CLKSEL_PLL_EXT32) })
+#define MPU6050_DEVICE_RESET_INSTR      ((uint8_t[]){ (uint8_t)MPU6050_PWR_MGMT_1, (uint8_t)(MPU6050_DEVICE_RESET_BIT) })
+#define MPU6050_SIGNAL_PATH_RESET_INSTR ((uint8_t[]){ (uint8_t)MPU6050_SIGNAL_PATH_RESET, (uint8_t)(MPU6050_TEMP_RESET | MPU6050_ACCEL_RESET | MPU6050_GYRO_RESET) })
+#define MPU6050_CONFIGURE_GYRO_INSTR    ((uint8_t[]){ (uint8_t)MPU6050_GYRO_CONFIG, (uint8_t)(MPU6050_FS_SEL_2000) }) 
+#define MPU6050_CONFIGURE_ACCEL_INSTR   ((uint8_t[]){ (uint8_t)MPU6050_ACCEL_CONFIG, (uint8_t)(MPU6050_AFS_SEL_16) }) 
+
+#define MPU6050_INSTR_SIZE(INSTR) (sizeof(INSTR))
+
 typedef enum {
   MPU6050_SUCCESS = 0,
   MPU6050_ERROR,
 } mpu6050_status_t;
 
-mpu6050_status_t mpu6050_reset(void);
+typedef struct {
+  uint16_t x;
+  uint16_t y;
+  uint16_t z;
+} mpu6050_gyro_data_t;
+
+typedef struct {
+  uint16_t x;
+  uint16_t y;
+  uint16_t z;
+} mpu6050_accel_data_t;
+
+typedef struct {
+  uint16_t raw_temp;
+} mpu6050_temp_data_t;
+
+mpu6050_status_t mpu6050_whoami(uint32_t i2c, uint8_t *data);
+mpu6050_status_t mpu6050_reset(uint32_t i2c);
+mpu6050_status_t mpu6050_sleep_off(uint32_t i2c);
+mpu6050_status_t mpu6050_config(uint32_t i2c);
+mpu6050_status_t mpu6050_get_pwr_mgmt_1(uint32_t i2c);
+mpu6050_status_t mpu6050_get_accel(uint32_t i2c, mpu6050_accel_data_t *accel);
+mpu6050_status_t mpu6050_get_temp(uint32_t i2c, mpu6050_temp_data_t *temp);
+mpu6050_status_t mpu6050_get_gyro(uint32_t i2c, mpu6050_gyro_data_t *gyro);
+mpu6050_status_t mpu6050_get_all_measurements(uint32_t i2c, mpu6050_accel_data_t *accel, mpu6050_gyro_data_t *gyro, mpu6050_temp_data_t *temp);
 
 #endif // !INC_MPU6050_H

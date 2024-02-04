@@ -1,6 +1,7 @@
 #include "common-defines.h"
 #include "i2c_controller.h"
 #include "usart_controller.h"
+#include "mpu6050.h"
 #include <message.h>
 #include <FreeRTOS.h>
 #include <libopencm3/stm32/gpio.h>
@@ -22,6 +23,7 @@ static void rcc_setup(void) {
 
   /* Enable I2C1 */
   rcc_periph_clock_enable(RCC_I2C1);
+  // rcc_periph_reset_pulse(RST_I2C1);
 
   /* Enable USART1_TX */
   rcc_periph_clock_enable(RCC_USART1);
@@ -33,6 +35,7 @@ static void gpio_setup(void) {
 
   /* Configure GPIO port and pins for I2C1 */
   gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO6 | GPIO7);
+  // gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_PULLUP, GPIO6 | GPIO7);
 
   /* Configure GPIO port and pin for USART1_TX */
   gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO9);
@@ -74,15 +77,37 @@ int main(void) {
   i2c_setup();
   usart_setup();
 
+  delay(96000000 / 4);
+  led2_on();
+
+  delay(96000000 / 4);
   led2_off();
 
-  uint16_t data_buffer[128];
-  message_write(data_buffer, "Hello from this side!\n\r");
+  delay(96000000 / 32);
+  mpu6050_reset(I2C1);
+
+  delay(96000000 / 32);
+  mpu6050_sleep_off(I2C1);
+
+  delay(96000000 / 32);
+  mpu6050_config(I2C1);
+
+  delay(96000000 / 32);
+  mpu6050_get_pwr_mgmt_1(I2C1);
+
+  mpu6050_accel_data_t accel;
+  mpu6050_gyro_data_t gyro;
+  mpu6050_temp_data_t temp;
 
   while (1) {
-    delay(96000000 / 4);
-    i2c_controller_scan(I2C1);
-    // i2c_controller_send_byte(I2C1, 0x55, &(const uint8_t){0b01010101});
+    // delay(96000000 / 128);
+    // mpu6050_get_gyro(I2C1, &gyro);
+
+    // delay(96000000 / 128);
+    // mpu6050_get_accel(I2C1, &accel);
+
+    delay(96000000 / 128);
+    mpu6050_get_all_measurements(I2C1, &accel, &gyro, &temp);
   }
 
   return 0;
