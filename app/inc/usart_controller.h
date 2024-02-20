@@ -2,6 +2,7 @@
 #define INC_USART_CONTROLLER_H
 
 #include <common-defines.h>
+#include <printf.h>
 #include <message.h>
 
 #include <libopencm3/stm32/usart.h>
@@ -35,6 +36,6 @@ typedef struct {
 extern usart_controller_config_t usart_default_config;
 
 usart_controller_status_t usart_controller_init(const usart_controller_config_t *config);
-usart_controller_status_t usart_controller_send(uint32_t usart, uint16_t *data_buffer);
+usart_controller_status_t usart_controller_send(uint32_t usart, char *data_buffer, uint16_t length);
 
 #endif // !INC_USART_CONTROLLER_H

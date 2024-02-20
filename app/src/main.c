@@ -99,15 +99,27 @@ int main(void) {
   mpu6050_gyro_data_t gyro;
   mpu6050_temp_data_t temp;
 
-  while (1) {
-    // delay(96000000 / 128);
-    // mpu6050_get_gyro(I2C1, &gyro);
+  char data_buffer[100];
 
-    // delay(96000000 / 128);
-    // mpu6050_get_accel(I2C1, &accel);
+  delay(96000000 / 32);
+  int length = snprintf(data_buffer, sizeof(data_buffer), "Address found: 0x%x\r\n", 105);
+  usart_controller_send(USART1, data_buffer, (uint16_t)length);
+
+  while (1) {
+    delay(96000000 / 128);
+    mpu6050_get_gyro(I2C1, &gyro);
+    length = snprintf(data_buffer, sizeof(data_buffer), "\n\n\rgyro: x=%d, y=%d, z=%d\n\r", gyro.x, gyro.y, gyro.z);
+    usart_controller_send(USART1, data_buffer, (uint16_t)length);
+
+    delay(96000000 / 128);
+    mpu6050_get_accel(I2C1, &accel);
+    length = snprintf(data_buffer, sizeof(data_buffer), "accel: x=%d, y=%d, z=%d\n\r", accel.x, accel.y, accel.z);
+    usart_controller_send(USART1, data_buffer, (uint16_t)length);
 
     delay(96000000 / 128);
     mpu6050_get_all_measurements(I2C1, &accel, &gyro, &temp);
+    length = snprintf(data_buffer, sizeof(data_buffer), "temp: %d\n\r", temp.raw_temp);
+    usart_controller_send(USART1, data_buffer, (uint16_t)length);
   }
 
   return 0;

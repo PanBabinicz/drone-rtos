@@ -4,8 +4,8 @@
 #include <libopencm3/stm32/usart.h>
 #include <message.h>
 
-static uint16_t  data_buffer[128];
-static char      hex_string[10];
+static char data_buffer[128];
+static char hex_string[10];
 
 static void delay(uint32_t cycles) {
   for (uint32_t i = 0; i < cycles; i++) {
@@ -58,12 +58,15 @@ i2c_controller_status_t i2c_controller_scan(uint32_t i2c) {
     (void)I2C_SR2(i2c);
 
     if (counter) {
-      message_write(data_buffer, "Address found: ");
-      usart_controller_send(USART1, data_buffer);
+      // message_write(data_buffer, "Address found: ");
+      // usart_controller_send(USART1, data_buffer);
+      
+      // message_dtoh_string(address, hex_string);
+      // message_write(data_buffer, hex_string);
+      // usart_controller_send(USART1, data_buffer);
 
-      message_dtoh_string(address, hex_string);
-      message_write(data_buffer, hex_string);
-      usart_controller_send(USART1, data_buffer);
+      int length = snprintf(data_buffer, sizeof(data_buffer), "Address found: 0x%x\r\n", address);
+      usart_controller_send(USART1, data_buffer, (uint16_t)length);
     }
 
     i2c_send_stop(i2c);

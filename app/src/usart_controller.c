@@ -19,12 +19,16 @@ usart_controller_status_t usart_controller_init(const usart_controller_config_t 
   return USART_CONTROLLER_SUCCESS;
 }
 
-usart_controller_status_t usart_controller_send(uint32_t usart, uint16_t *data_buffer) {
+usart_controller_status_t usart_controller_send(uint32_t usart, char *data_buffer, uint16_t length) {
   if (!data_buffer) {
     return USART_CONTROLLER_NULL_POINTER;
   }
 
-  for (uint16_t i = 0; i < message_length(data_buffer); i++) {
+  // for (uint16_t i = 0; i < message_length(data_buffer); i++) {
+  //   usart_send_blocking(usart, data_buffer[i]);
+  // }
+
+  for (uint16_t i = 0; i < length; i++) {
     usart_send_blocking(usart, data_buffer[i]);
   }
 
