@@ -61,6 +61,7 @@ extern const i2c_controller_config_t i2c_default_sm_config;
 i2c_controller_status_t i2c_controller_init(const i2c_controller_config_t *config);
 i2c_controller_status_t i2c_controller_scan(uint32_t i2c);
 i2c_controller_status_t i2c_controller_send_byte(uint32_t i2c, uint8_t address, uint8_t data);
+i2c_controller_status_t i2c_controller_read_byte(uint32_t i2c, uint8_t address, uint8_t reg, uint8_t *data);
 i2c_controller_status_t i2c_controller_read_instruction(uint32_t i2c, uint8_t address, uint8_t reg, uint8_t *data, uint8_t data_size);
 i2c_controller_status_t i2c_controller_send_instruction(uint32_t i2c, uint8_t address, const uint8_t *data, uint8_t data_size);
 

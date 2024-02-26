@@ -95,9 +95,11 @@ int main(void) {
   delay(96000000 / 32);
   mpu6050_get_pwr_mgmt_1(I2C1);
 
-  mpu6050_accel_data_t accel;
-  mpu6050_gyro_data_t gyro;
-  mpu6050_temp_data_t temp;
+  mpu6050_accel_data_t accel = { .x = 0, .y = 0, .z = 0 };
+  mpu6050_gyro_data_t gyro = { .x = 0, .y = 0, .z = 0 };
+  mpu6050_temp_data_t temp = { .raw_temp = 0, .celsius = 0 };
+
+  mpu6050_set_prescalers(&accel, &gyro);
 
   char data_buffer[100];
 
@@ -106,19 +108,26 @@ int main(void) {
   usart_controller_send(USART1, data_buffer, (uint16_t)length);
 
   while (1) {
-    delay(96000000 / 128);
-    mpu6050_get_gyro(I2C1, &gyro);
-    length = snprintf(data_buffer, sizeof(data_buffer), "\n\n\rgyro: x=%d, y=%d, z=%d\n\r", gyro.x, gyro.y, gyro.z);
-    usart_controller_send(USART1, data_buffer, (uint16_t)length);
+    // delay(96000000 / 128);
+    // mpu6050_get_gyro(I2C1, &gyro);
+    // length = snprintf(data_buffer, sizeof(data_buffer), "gyro: x=%d, y=%d, z=%d\n\r", gyro.x, gyro.y, gyro.z);
+    // usart_controller_send(USART1, data_buffer, (uint16_t)length);
 
-    delay(96000000 / 128);
+    // delay(96000000 / 128);
+    // mpu6050_get_accel(I2C1, &accel);
+    // length = snprintf(data_buffer, sizeof(data_buffer), "accel: x=%d, y=%d, z=%d\n\r", accel.x, accel.y, accel.z);
+    // usart_controller_send(USART1, data_buffer, (uint16_t)length);
+
+    // mpu6050_get_all_measurements(I2C1, &accel, &gyro, &temp);
+
     mpu6050_get_accel(I2C1, &accel);
-    length = snprintf(data_buffer, sizeof(data_buffer), "accel: x=%d, y=%d, z=%d\n\r", accel.x, accel.y, accel.z);
+    mpu6050_print_all_data(USART1, &accel, &gyro, &temp);
+
+    delay(96000000 / 64);
+    length = snprintf(data_buffer, sizeof(data_buffer), "\033[2J");
     usart_controller_send(USART1, data_buffer, (uint16_t)length);
 
-    delay(96000000 / 128);
-    mpu6050_get_all_measurements(I2C1, &accel, &gyro, &temp);
-    length = snprintf(data_buffer, sizeof(data_buffer), "temp: %d\n\r", temp.raw_temp);
+    length = snprintf(data_buffer, sizeof(data_buffer), "\033[H");
     usart_controller_send(USART1, data_buffer, (uint16_t)length);
   }
 

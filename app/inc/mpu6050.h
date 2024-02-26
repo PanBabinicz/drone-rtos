@@ -3,6 +3,7 @@
 
 #include <common-defines.h>
 #include <i2c_controller.h>
+#include <usart_controller.h>
 
 /* MPU6050 Address: AD0 pin is conntected to Vcc */
 #define MPU6050_ADDRESS (0x69)
@@ -129,11 +130,11 @@
 
 
 /* MPU6050 instructions. */
-#define MPU6050_CLKSEL_INSTR            ((uint8_t[]){ (uint8_t)MPU6050_PWR_MGMT_1, (uint8_t)(MPU6050_CLKSEL_PLL_EXT32) })
+#define MPU6050_CLKSEL_INSTR            ((uint8_t[]){ (uint8_t)MPU6050_PWR_MGMT_1, (uint8_t)(MPU6050_CLKSEL_INTERNAL) })
 #define MPU6050_DEVICE_RESET_INSTR      ((uint8_t[]){ (uint8_t)MPU6050_PWR_MGMT_1, (uint8_t)(MPU6050_DEVICE_RESET_BIT) })
 #define MPU6050_SIGNAL_PATH_RESET_INSTR ((uint8_t[]){ (uint8_t)MPU6050_SIGNAL_PATH_RESET, (uint8_t)(MPU6050_TEMP_RESET | MPU6050_ACCEL_RESET | MPU6050_GYRO_RESET) })
-#define MPU6050_CONFIGURE_GYRO_INSTR    ((uint8_t[]){ (uint8_t)MPU6050_GYRO_CONFIG, (uint8_t)(MPU6050_FS_SEL_2000) }) 
-#define MPU6050_CONFIGURE_ACCEL_INSTR   ((uint8_t[]){ (uint8_t)MPU6050_ACCEL_CONFIG, (uint8_t)(MPU6050_AFS_SEL_16) }) 
+#define MPU6050_CONFIGURE_GYRO_INSTR    ((uint8_t[]){ (uint8_t)MPU6050_GYRO_CONFIG, (uint8_t)(MPU6050_FS_SEL_500) }) 
+#define MPU6050_CONFIGURE_ACCEL_INSTR   ((uint8_t[]){ (uint8_t)MPU6050_ACCEL_CONFIG, (uint8_t)(MPU6050_AFS_SEL_8) }) 
 
 #define MPU6050_INSTR_SIZE(INSTR) (sizeof(INSTR))
 
@@ -143,21 +144,36 @@ typedef enum {
 } mpu6050_status_t;
 
 typedef struct {
-  uint16_t x;
-  uint16_t y;
-  uint16_t z;
+  int16_t x_lsb;
+  int16_t y_lsb;
+  int16_t z_lsb;
+
+  /* Value in g. */
+  float   x;
+  float   y;
+  float   z;
+
+  float   prescaler;
 } mpu6050_gyro_data_t;
 
 typedef struct {
-  uint16_t x;
-  uint16_t y;
-  uint16_t z;
+  int16_t x_lsb;
+  int16_t y_lsb;
+  int16_t z_lsb;
+
+  float x;
+  float y;
+  float z;
+
+  float   prescaler;
 } mpu6050_accel_data_t;
 
 typedef struct {
-  uint16_t raw_temp;
+  int16_t raw_temp;
+  float   celsius;
 } mpu6050_temp_data_t;
 
+mpu6050_status_t mpu6050_set_prescalers(mpu6050_accel_data_t *accel, mpu6050_gyro_data_t *gyro); 
 mpu6050_status_t mpu6050_whoami(uint32_t i2c, uint8_t *data);
 mpu6050_status_t mpu6050_reset(uint32_t i2c);
 mpu6050_status_t mpu6050_sleep_off(uint32_t i2c);
@@ -167,5 +183,6 @@ mpu6050_status_t mpu6050_get_accel(uint32_t i2c, mpu6050_accel_data_t *accel);
 mpu6050_status_t mpu6050_get_temp(uint32_t i2c, mpu6050_temp_data_t *temp);
 mpu6050_status_t mpu6050_get_gyro(uint32_t i2c, mpu6050_gyro_data_t *gyro);
 mpu6050_status_t mpu6050_get_all_measurements(uint32_t i2c, mpu6050_accel_data_t *accel, mpu6050_gyro_data_t *gyro, mpu6050_temp_data_t *temp);
+mpu6050_status_t mpu6050_print_all_data(uint32_t usart, const mpu6050_accel_data_t *accel, const mpu6050_gyro_data_t *gyro, const mpu6050_temp_data_t *temp);
 
 #endif // !INC_MPU6050_H

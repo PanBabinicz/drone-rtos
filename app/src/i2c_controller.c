@@ -5,7 +5,6 @@
 #include <message.h>
 
 static char data_buffer[128];
-static char hex_string[10];
 
 static void delay(uint32_t cycles) {
   for (uint32_t i = 0; i < cycles; i++) {
@@ -104,6 +103,59 @@ i2c_controller_status_t i2c_controller_send_byte(uint32_t i2c, uint8_t address, 
   return I2C_CONTROLLER_SUCCESS;
 } 
 
+i2c_controller_status_t i2c_controller_read_byte(uint32_t i2c, uint8_t address, uint8_t reg, uint8_t *data) {
+  if (!data) {
+    return I2C_CONTROLLER_ERROR;
+  }
+
+  while ((I2C_SR2(i2c) & (I2C_SR2_BUSY))) {} 
+
+  /* A serial data transfer always begins with a start condition 
+   * and ends with a stop condition */
+  i2c_send_start(i2c);
+
+  /* Setting the START bit causes the interface to generate a Start condition and to switch 
+   * to Master mode (MSL bit set) when the BUSY bit is cleared. */
+  while (!((I2C_SR1(i2c) & I2C_SR1_SB) && (I2C_SR2(i2c) & (I2C_SR2_MSL | I2C_SR2_BUSY)))) {}
+
+  i2c_send_7bit_address(i2c, address, I2C_WRITE);
+  
+  /* Waiting for address is transferred. */
+	while (!(I2C_SR1(i2c) & I2C_SR1_ADDR)) {}
+
+  /* Cleaning the address flag */
+  (void)I2C_SR2(i2c);
+
+  i2c_send_data(i2c, reg);
+
+  while (!(I2C_SR1(i2c) & (I2C_SR1_BTF | I2C_SR1_TxE))) {}
+
+  /* Send reapeated start. */
+  i2c_send_start(i2c);
+  i2c_enable_ack(i2c);
+
+  while (!((I2C_SR1(i2c) & I2C_SR1_SB) && (I2C_SR2(i2c) & (I2C_SR2_MSL | I2C_SR2_BUSY)))) {}
+
+  i2c_send_7bit_address(i2c, address, I2C_READ);
+
+  /* Waiting for address is transferred. */
+	while (!(I2C_SR1(i2c) & I2C_SR1_ADDR)) {}
+
+  /* Cleaning the address flag */
+  (void)I2C_SR2(i2c);
+  
+  I2C_CR1(i2c) &= ~I2C_CR1_ACK;
+
+  while (!(I2C_SR1(i2c) & I2C_SR1_RxNE));
+  *data = i2c_get_data(i2c);
+
+  gpio_clear(GPIOC, GPIO13);
+
+  i2c_send_stop(i2c);
+
+  return I2C_CONTROLLER_SUCCESS;
+}
+
 i2c_controller_status_t i2c_controller_read_instruction(uint32_t i2c, uint8_t address, uint8_t reg, uint8_t *data, uint8_t data_size) {
   if (!data) {
     return I2C_CONTROLLER_ERROR;
@@ -145,7 +197,7 @@ i2c_controller_status_t i2c_controller_read_instruction(uint32_t i2c, uint8_t ad
   /* Cleaning the address flag */
   (void)I2C_SR2(i2c);
   
-  // I2C_CR1(i2c) &= ~I2C_CR1_ACK;
+  // I2C_CR1(i2c) &= ~I1C_CR1_ACK;
 
   for (uint8_t i = 0; i < data_size; i++) {
     if (i == data_size - 1) {
