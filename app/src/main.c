@@ -2,6 +2,7 @@
 #include "i2c_controller.h"
 #include "usart_controller.h"
 #include "mpu6050.h"
+#include "tim_controller.h"
 #include <message.h>
 #include <FreeRTOS.h>
 #include <libopencm3/stm32/gpio.h>
@@ -23,10 +24,15 @@ static void rcc_setup(void) {
 
   /* Enable I2C1 */
   rcc_periph_clock_enable(RCC_I2C1);
-  // rcc_periph_reset_pulse(RST_I2C1);
 
   /* Enable USART1_TX */
   rcc_periph_clock_enable(RCC_USART1);
+  
+  /* Enable TIM3 clock. */
+	rcc_periph_clock_enable(RCC_TIM3);
+
+  /* Reset TIM3 peripheral to defaults. */
+	rcc_periph_reset_pulse(RST_TIM3);
 }
 
 static void gpio_setup(void) {
@@ -40,11 +46,23 @@ static void gpio_setup(void) {
   /* Configure GPIO port and pin for USART1_TX */
   gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO9);
 
+  /* Configure GPIO port and pin for TIM3_CH1 and TIM3_CH2 */
+  gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO6 | GPIO7);
+
+  /* Configure GPIO port and pin for TIM3_CH3 and TIM3_CH4 */
+  gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO0 | GPIO1);
+
   /* Set alternative function for I2C1 */
   gpio_set_af(GPIOB, GPIO_AF4, GPIO6 | GPIO7);
 
   /* Set alternative function for USART1_TX */
   gpio_set_af(GPIOA, GPIO_AF7, GPIO9);
+  
+  /* Set alternative function for TIM3_CH1 and TIM3_CH2 */
+  gpio_set_af(GPIOA, GPIO_AF2, GPIO6 | GPIO7);
+
+  /* Set alternative function for TIM3_CH1 and TIM3_CH2 */
+  gpio_set_af(GPIOB, GPIO_AF2, GPIO0 | GPIO1);
 }
 
 static void i2c_setup(void) {
@@ -53,6 +71,10 @@ static void i2c_setup(void) {
 
 static void usart_setup(void) {
   usart_controller_init(&usart_default_config);
+}
+
+static void tim_setup(void) {
+  tim_controller_init(&tim3_default_config);
 }
 
 static void delay(uint32_t cycles) {
@@ -76,6 +98,7 @@ int main(void) {
   gpio_setup();
   i2c_setup();
   usart_setup();
+  tim_setup();
 
   delay(96000000 / 4);
   led2_on();
@@ -107,21 +130,11 @@ int main(void) {
   int length = snprintf(data_buffer, sizeof(data_buffer), "Address found: 0x%x\r\n", 105);
   usart_controller_send(USART1, data_buffer, (uint16_t)length);
 
+  delay(96000000 / 4);
+  led2_off();
+
   while (1) {
-    // delay(96000000 / 128);
-    // mpu6050_get_gyro(I2C1, &gyro);
-    // length = snprintf(data_buffer, sizeof(data_buffer), "gyro: x=%d, y=%d, z=%d\n\r", gyro.x, gyro.y, gyro.z);
-    // usart_controller_send(USART1, data_buffer, (uint16_t)length);
-
-    // delay(96000000 / 128);
-    // mpu6050_get_accel(I2C1, &accel);
-    // length = snprintf(data_buffer, sizeof(data_buffer), "accel: x=%d, y=%d, z=%d\n\r", accel.x, accel.y, accel.z);
-    // usart_controller_send(USART1, data_buffer, (uint16_t)length);
-
-    // mpu6050_get_all_measurements(I2C1, &accel, &gyro, &temp);
-
-    mpu6050_get_accel(I2C1, &accel);
-    mpu6050_print_all_data(USART1, &accel, &gyro, &temp);
+    tim_controller_display(USART1);
 
     delay(96000000 / 64);
     length = snprintf(data_buffer, sizeof(data_buffer), "\033[2J");

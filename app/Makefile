@@ -66,6 +66,7 @@ OBJS		+= $(SRC_DIR)/usart_controller.o
 OBJS		+= $(SRC_DIR)/message.o
 OBJS		+= $(SRC_DIR)/printf.o
 OBJS		+= $(SRC_DIR)/mpu6050.o
+OBJS		+= $(SRC_DIR)/tim_controller.o
 OBJS		+= $(FREERTOS_DIR)/timers.o
 
 ###############################################################################
