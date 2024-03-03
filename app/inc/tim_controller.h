@@ -24,20 +24,31 @@ typedef struct {
   enum tim_ic_id input_capture_channel_designator[4];
   enum tim_ic_input input_capture_channel_direction[4];
   enum tim_ic_pol input_capture_channel_polarity[4];
-} tim_controller_config_t;
+} tim_controller_input_capture_config_t;
 
 typedef struct {
-  uint16_t current_channel_1;
-  uint16_t current_channel_2;
-  uint16_t current_channel_3;
-  uint16_t current_channel_4;
-  uint16_t last_channel_1;
-  uint16_t last_channel_2;
-  uint16_t last_channel_3;
-  uint16_t last_channel_4;
+  uint32_t tim;
+  uint32_t clock_div;
+  uint32_t alignment;
+  uint32_t direction;
+  uint32_t prescaler;
+  uint32_t period;
+  enum tim_oc_mode output_compare_mode[4];
+  enum tim_oc_id output_compare_id[4];
+} tim_controller_output_compare_config_t;
+
+typedef struct {
+  uint16_t  current_channel_1;
+  uint16_t  current_channel_2;
+  uint16_t  current_channel_3;
+  uint16_t  current_channel_4;
+  uint16_t  last_channel_1;
+  uint16_t  last_channel_2;
+  uint16_t  last_channel_3;
+  uint16_t  last_channel_4;
 } tim_controller_channels_t;
 
-/* TIM3 is responsible for getting data from the radio receiver. 
+/* TIM3 16-bit is responsible for getting data from the radio receiver. 
  * TIM3->CH1
  * TIM3->CH2
  * TIM3->CH3
@@ -57,19 +68,33 @@ typedef struct {
   .input_capture_channel_polarity = { TIM_IC_BOTH, TIM_IC_BOTH, TIM_IC_BOTH, TIM_IC_BOTH}, \
 };
 
-/* TIM5 is responsible for setting the ESCs. 
+/* TIM5 32-bit is responsible for setting the ESCs. 
  * TIM5->CH1
  * TIM5->CH2
  * TIM5->CH3
  * TIM5->CH4
  **/
+#define TIM5_DEFAULT_CONFIG { \
+  .tim = TIM5, \
+  .clock_div = TIM_CR1_CKD_CK_INT, \
+  .alignment = TIM_CR1_CMS_EDGE, \
+  .direction = TIM_CR1_DIR_UP, \
+  .prescaler = 0x0000005F, \
+  .period = 0x00001388, \
+  .output_compare_mode = { TIM_OCM_PWM1, TIM_OCM_PWM1, TIM_OCM_PWM1, TIM_OCM_PWM1 }, \
+  .output_compare_id = { TIM_OC1, TIM_OC2, TIM_OC3, TIM_OC4 }, \
+};
 
-extern tim_controller_config_t tim3_default_config;
-extern tim_controller_channels_t tim3_channels;
+
+extern tim_controller_input_capture_config_t tim3_input_capture_default_config;
+extern tim_controller_output_compare_config_t tim5_output_compare_default_config;
+extern volatile tim_controller_channels_t tim3_channels;
 extern tim_controller_channels_t tim5_channels;
 
-tim_controller_status_t tim_controller_init(const tim_controller_config_t *config);
+tim_controller_status_t tim_controller_init_input_capture(const tim_controller_input_capture_config_t *config);
+tim_controller_status_t tim_controller_init_output_compare(const tim_controller_output_compare_config_t *config);
 
+void tim_controller_check_pwm(void);
 void tim_controller_display(uint32_t usart);
 
 void tim3_isr(void);

@@ -33,6 +33,12 @@ static void rcc_setup(void) {
 
   /* Reset TIM3 peripheral to defaults. */
 	rcc_periph_reset_pulse(RST_TIM3);
+
+  /* Enable TIM5 clock. */
+	rcc_periph_clock_enable(RCC_TIM5);
+
+  /* Reset TIM5 peripheral to defaults. */
+	rcc_periph_reset_pulse(RST_TIM5);
 }
 
 static void gpio_setup(void) {
@@ -41,7 +47,6 @@ static void gpio_setup(void) {
 
   /* Configure GPIO port and pins for I2C1 */
   gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO6 | GPIO7);
-  // gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_PULLUP, GPIO6 | GPIO7);
 
   /* Configure GPIO port and pin for USART1_TX */
   gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO9);
@@ -51,6 +56,9 @@ static void gpio_setup(void) {
 
   /* Configure GPIO port and pin for TIM3_CH3 and TIM3_CH4 */
   gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO0 | GPIO1);
+
+  /* Configure GPIO port and pin for TIM5_CH1, TIM5_CH2, TIM5_CH3 and TIM5_CH4 */
+  gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO0 | GPIO1 | GPIO2 | GPIO3);
 
   /* Set alternative function for I2C1 */
   gpio_set_af(GPIOB, GPIO_AF4, GPIO6 | GPIO7);
@@ -63,6 +71,9 @@ static void gpio_setup(void) {
 
   /* Set alternative function for TIM3_CH1 and TIM3_CH2 */
   gpio_set_af(GPIOB, GPIO_AF2, GPIO0 | GPIO1);
+
+  /* Set alternative function for TIM3_CH1 and TIM3_CH2 */
+  gpio_set_af(GPIOA, GPIO_AF2, GPIO0 | GPIO1 | GPIO2 | GPIO3);
 }
 
 static void i2c_setup(void) {
@@ -74,7 +85,8 @@ static void usart_setup(void) {
 }
 
 static void tim_setup(void) {
-  tim_controller_init(&tim3_default_config);
+  tim_controller_init_input_capture(&tim3_input_capture_default_config);
+  tim_controller_init_output_compare(&tim5_output_compare_default_config);
 }
 
 static void delay(uint32_t cycles) {
@@ -135,13 +147,20 @@ int main(void) {
 
   while (1) {
     tim_controller_display(USART1);
+    
+    timer_set_oc_value(TIM5, TIM_OC1, tim5_channels.current_channel_3);
+    timer_set_oc_value(TIM5, TIM_OC2, tim5_channels.current_channel_3);
+    timer_set_oc_value(TIM5, TIM_OC3, tim5_channels.current_channel_3);
+    timer_set_oc_value(TIM5, TIM_OC4, tim5_channels.current_channel_3);
 
-    delay(96000000 / 64);
-    length = snprintf(data_buffer, sizeof(data_buffer), "\033[2J");
-    usart_controller_send(USART1, data_buffer, (uint16_t)length);
+    timer_set_counter(TIM5, 0x00001388);
 
-    length = snprintf(data_buffer, sizeof(data_buffer), "\033[H");
-    usart_controller_send(USART1, data_buffer, (uint16_t)length);
+    // delay(96000000 / 64);
+    // length = snprintf(data_buffer, sizeof(data_buffer), "\033[2J");
+    // usart_controller_send(USART1, data_buffer, (uint16_t)length);
+    //
+    // length = snprintf(data_buffer, sizeof(data_buffer), "\033[H");
+    // usart_controller_send(USART1, data_buffer, (uint16_t)length);
   }
 
   return 0;
